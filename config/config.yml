@@ -1,0 +1,10 @@
+---
+defaults: &defaults
+  app_name: "pik-cars-dashboard-backend"
+  period_in_days_api_token_update: 20
+
+development:
+  <<: *defaults
+
+production:
+  <<: *defaults

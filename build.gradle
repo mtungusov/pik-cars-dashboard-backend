@@ -1,0 +1,23 @@
+plugins {
+    id "java"
+    id "com.github.jruby-gradle.jar" version "1.3.3"
+}
+
+configurations {
+    compile.extendsFrom jrubyJar
+    jrubyJar.extendsFrom gems
+}
+
+dependencies {
+    gems 'rubygems:settingslogic:2.0.9'
+    gems 'rubygems:dotenv:2.2.0'
+    gems 'rubygems:faraday:0.11.0'
+    gems 'rubygems:faraday_middleware:0.11.0.1'
+    //gems 'rubygems:concurrent-ruby:1.0.4'
+    gems 'rubygems:pry:0.10.4'
+}
+
+jrubyJar {
+    initScript "${projectDir}/app.rb"
+    into('lib') { from 'lib' }
+}
