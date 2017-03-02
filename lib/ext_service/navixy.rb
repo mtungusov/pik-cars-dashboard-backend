@@ -26,37 +26,10 @@ module ExtService::Navixy
       !@token.empty?
     end
 
-    def trackers
+    def list(url)
       return [] unless auth?
       resp = @connection.post do |req|
-        req.url '/v2/tracker/list'
-        req.params['hash'] = @token
-      end
-      resp.body['success'] ? resp.body['list'] : []
-    end
-
-    def groups
-      return [] unless auth?
-      resp = @connection.post do |req|
-        req.url '/v2/tracker/group/list'
-        req.params['hash'] = @token
-      end
-      resp.body['success'] ? resp.body['list'] : []
-    end
-
-    def zones
-      return [] unless auth?
-      resp = @connection.post do |req|
-        req.url '/v2/zone/list'
-        req.params['hash'] = @token
-      end
-      resp.body['success'] ? resp.body['list'] : []
-    end
-
-    def rules
-      return [] unless auth?
-      resp = @connection.post do |req|
-        req.url '/v2/tracker/rule/list'
+        req.url url
         req.params['hash'] = @token
       end
       resp.body['success'] ? resp.body['list'] : []
@@ -112,7 +85,7 @@ module ExtService::Navixy
   end
 
   def trackers
-    api.trackers.map do |h|
+    api.list('/v2/tracker/list').map do |h|
       {
         'id' => h['id'],
         'label' => h['label'],
@@ -122,7 +95,7 @@ module ExtService::Navixy
   end
 
   def groups
-    api.groups.map do |h|
+    api.list('/v2/tracker/group/list').map do |h|
       {
         'id' => h['id'],
         'title' => h['title']
@@ -131,10 +104,7 @@ module ExtService::Navixy
   end
 
   def rules
-    filter = 'inoutzone'
-    api.rules.select do |elem|
-      elem['type'] == filter
-    end.map do |h|
+    api.list('/v2/tracker/rule/list').select { |elem| elem['type'] == 'inoutzone' }.map do |h|
       {
         'id' => h['id'],
         'type' => h['type'],
@@ -145,7 +115,7 @@ module ExtService::Navixy
   end
 
   def zones
-    api.zones.map do |h|
+    api.list('/v2/zone/list').map do |h|
       {
         'id' => h['id'],
         'label' => h['label']
