@@ -35,6 +35,18 @@ module ExtService::Navixy
       resp.body['success'] ? resp.body['list'] : []
     end
 
+    def tracker_states(tracker_ids)
+      return {} if tracker_ids.empty?
+      return {} unless auth?
+      url = '/v2/tracker/get_states'
+      resp = @connection.post do |req|
+        req.url url
+        req.params['hash'] = @token
+        req.body = "trackers=#{URI.encode_www_form_component(tracker_ids)}"
+      end
+      resp.body['success'] ? resp.body['states'] : {}
+    end
+
     def _token_to_file
       f = File.open @token_file, 'w'
       f.write @token
@@ -119,6 +131,16 @@ module ExtService::Navixy
       {
         'id' => h['id'],
         'label' => h['label']
+      }
+    end
+  end
+
+  def tracker_states(tracker_ids)
+    api.tracker_states(tracker_ids).inject([]) do |acc, (k, v)|
+      acc << {
+        'id' => k,
+        'movement_status' => v['movement_status'],
+        'connection_status' => v['connection_status']
       }
     end
   end
