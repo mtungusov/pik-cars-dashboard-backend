@@ -139,8 +139,7 @@ module ExtService::Navixy
     api.tracker_states(tracker_ids).inject([]) do |acc, (k, v)|
       acc << {
         'id' => k,
-        'movement_status' => v['movement_status'],
-        'connection_status' => v['connection_status']
+        'movement_status' => v['movement_status']
       }
     end
   end

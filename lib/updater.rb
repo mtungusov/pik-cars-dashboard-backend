@@ -13,6 +13,23 @@ module Updater
     puts e.to_s
   end
 
+  def update_live(connection)
+    _tracker_state(connection)
+    # _tracker_zone(connection)
+  end
+
+  def _tracker_state(connection)
+    ids = _tracker_ids(connection)
+    # get states from API
+    # select ids with changed state
+    # update ids with changed state
+  end
+
+  def _tracker_ids(connection)
+    # code here
+    Storage.select_ids(connection, 'trackers')
+  end
+
   def _groups(connection)
     ExtService::Navixy.groups.each { |item| Storage.upsert_into(connection, 'groups', item) }
   end

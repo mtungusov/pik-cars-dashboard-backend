@@ -17,32 +17,29 @@ require 'lib/storage'
 
 require 'lib/updater'
 
-require 'thread'
-Thread.abort_on_exception = true
+# require 'thread'
+# Thread.abort_on_exception = true
+#
+# Thread.new do
+#   $conn_write_nsi = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
+#   loop do
+#     Updater.update_nsi $conn_write_nsi
+#     sleep Settings::ALL.perion_nsi_update
+#   end
+# end
+#
+# sleep
+#
+# at_exit {
+#   puts "Terminate:at_exit:start"
+#   Storage.client.close $conn_write_nsi
+#   sleep 1
+#   puts "Terminate:at_exit:end"
+#   exit!
+# }
 
-Thread.new do
-  $conn_write = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
-  loop do
-    Updater.update_nsi $conn_write
-    sleep Settings::ALL.perion_nsi_update
-  end
-end
-
-sleep
-
-at_exit {
-  puts "Terminate:at_exit:start"
-  Storage.client.close $conn_write
-  sleep 1
-  puts "Terminate:at_exit:end"
-  exit!
-}
-
-# require 'pry'
-# binding.pry
+$conn_write_live = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
 
 
-# todo
-# Retrive data from API
-# init DB
-# update DB
+require 'pry'
+binding.pry

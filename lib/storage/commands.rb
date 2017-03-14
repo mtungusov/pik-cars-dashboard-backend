@@ -10,6 +10,19 @@ module Storage::Commands
   ensure
     pstmt.close unless pstmt.closed?
   end
+
+  def select_ids(connection, sql)
+    result = []
+    stmt = connection.createStatement
+    rs = stmt.executeQuery(sql)
+    while rs.next
+      result << rs.getLong('id')
+    end
+    return result
+  ensure
+    rs.close if (rs and !rs.closed?)
+    stmt.close unless stmt.closed?
+  end
 end
 
 

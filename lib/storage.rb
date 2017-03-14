@@ -13,6 +13,11 @@ module Storage
     Storage::Commands.upsert(connection, sql, hash_values.values)
   end
 
+  def select_ids(connection, table)
+    sql = "SELECT id from #{table}"
+    Storage::Commands.select_ids(connection, sql)
+  end
+
   # Save NSI data
   def save_nsi
     # groups
