@@ -136,11 +136,11 @@ module ExtService::Navixy
   end
 
   def tracker_states(tracker_ids)
-    api.tracker_states(tracker_ids).inject([]) do |acc, (k, v)|
-      acc << {
-        'id' => k,
-        'movement_status' => v['movement_status']
-      }
+    api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
+      status = v['movement_status']
+      acc[status] = [] unless acc.key?(status)
+      acc[status] << k.to_i
+      acc
     end
   end
 end
