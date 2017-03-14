@@ -1,14 +1,15 @@
 module Storage
   class Sqlite
-    attr_reader :connection
-
     def initialize(db_file: '')
       @url = db_file.empty? ? 'jdbc:sqlite::memory' : "jdbc:sqlite:#{db_file}"
-      @connection = _connection
     end
 
-    def close
-      @connection.close if (@connection and !@connection.closed?)
+    def open
+      _connection
+    end
+
+    def close(connection)
+      connection.close if (connection and !connection.closed?)
     end
 
     def _connection
