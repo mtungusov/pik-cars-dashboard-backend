@@ -23,27 +23,3 @@ module Storage
     @@sqlite_client ||= Sqlite.new(db_file: params[:db_file])
   end
 end
-
-
-# ### SELECT
-# sql = 'SELECT id, label FROM zones'
-#
-# stmt = conn.createStatement
-# rs = stmt.executeQuery(sql)
-#
-# while rs.next
-#   puts "id: #{rs.getLong('id')}, label: #{rs.getString('label')}"
-# end
-# rs.close unless rs.closed?
-# stmt.close unless stmt.closed?
-
-# ### UPDATE
-# sql = 'INSERT or REPLACE INTO zones (id, label) VALUES (?, ?)'
-#
-# pstmt = conn.prepareStatement(sql)
-# pstmt.setLong(1, 111)
-# pstmt.setString(2, 'ZoneTest')
-# pstmt.executeUpdate
-#
-# pstmt.close unless pstmt.closed?
-#

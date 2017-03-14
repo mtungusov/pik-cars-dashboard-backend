@@ -11,9 +11,12 @@ puts "Namespace: #{Settings::Config.namespace}"
 puts "App: #{Settings::ALL.app_name}"
 
 
-# require 'lib/ext_service'
+require 'lib/ext_service'
 require 'lib/storage'
-Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite'))
+$conn_write = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
+
+require 'lib/updater'
+Updater.update_nsi $conn_write
 
 require 'pry'
 binding.pry
