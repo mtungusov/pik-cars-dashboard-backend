@@ -39,7 +39,7 @@ require 'lib/updater'
 # }
 
 $conn_write_live = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
-
+Updater.update_live $conn_write_live
 
 require 'pry'
 binding.pry

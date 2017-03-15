@@ -1,4 +1,6 @@
-module Storage; end
+module Storage;
+
+end
 
 require_relative 'storage/sqlite'
 require_relative 'storage/commands'
@@ -14,8 +16,21 @@ module Storage
   end
 
   def select_ids(connection, table)
-    sql = "SELECT id from #{table}"
+    sql = "SELECT id FROM #{table}"
     Storage::Commands.select_ids(connection, sql)
+  end
+
+  def select_trackers_by_state(connection, state)
+    sql = "SELECT id FROM tracker_states WHERE movement_status = ?"
+    Storage::Commands.select_by(connection, sql, [state])
+  end
+
+  def update_trackers_state(connection, table, array_value)
+    state = array_value.first
+    ids = array_value.last
+    changed_at = Time.now.to_i
+    sql = "INSERT or REPLACE INTO #{table} (id, movement_status, changed_at) VALUES (?, ?, ?)"
+    ids.each { |id| Storage::Commands.upsert(connection, sql, [id, state, changed_at]) }
   end
 
   # Save NSI data

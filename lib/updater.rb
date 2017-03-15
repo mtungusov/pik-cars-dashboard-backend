@@ -14,15 +14,37 @@ module Updater
   end
 
   def update_live(connection)
-    _tracker_state(connection)
+    connection.setAutoCommit(false)
+    _trackers_state(connection)
     # _tracker_zone(connection)
   end
 
-  def _tracker_state(connection)
+  def _trackers_state(connection)
     ids = _tracker_ids(connection)
     # get states from API
-    # select ids with changed state
+    states = ExtService::Navixy.tracker_states(ids)
+    # generate only changed states
+    changed_states = _changed_states(connection, states)
     # update ids with changed state
+    begin
+      changed_states.each do |item|
+        Storage.update_trackers_state(connection, 'tracker_states', item)
+      end
+      connection.commit
+    rescue => e
+      connection.rollback
+      puts e.to_s
+    end
+  end
+
+  def _changed_states(connection, new_states)
+    result = {}
+    new_states.each do |state, ids|
+      old_ids = Storage.select_trackers_by_state(connection, state)
+      changed_ids = ids - old_ids
+      result[state] = changed_ids unless changed_ids.empty?
+    end
+    result
   end
 
   def _tracker_ids(connection)
