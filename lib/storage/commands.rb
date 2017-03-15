@@ -4,10 +4,6 @@ module Storage::Commands
   def upsert(connection, sql, values)
     pstmt = connection.prepareStatement(sql)
     _set_params(pstmt, values)
-    # values.each_with_index do |item, index|
-    #   _set_param(pstmt, index.next, item)
-    #   # item.is_a?(Fixnum) ? pstmt.setLong(index.next, item) : pstmt.setString(index.next, item.to_s)
-    # end
     pstmt.executeUpdate
   ensure
     pstmt.close unless pstmt.closed?
@@ -26,13 +22,13 @@ module Storage::Commands
     stmt.close unless stmt.closed?
   end
 
-  def select_by(connection, sql, values)
+  def select_by(connection, sql, values, field_name = 'id')
     result = []
     pstmt = connection.prepareStatement(sql)
     _set_params(pstmt, values)
     rs = pstmt.executeQuery
     while rs.next
-      result << rs.getLong('id')
+      result << rs.getLong(field_name)
     end
     return result
   ensure

@@ -1,6 +1,4 @@
-module Storage;
-
-end
+module Storage; end
 
 require_relative 'storage/sqlite'
 require_relative 'storage/commands'
@@ -25,12 +23,22 @@ module Storage
     Storage::Commands.select_by(connection, sql, [state])
   end
 
+  def select_zone_by_rule(connection, rule_id)
+    sql = "SELECT zone_id FROM rules WHERE id = ? LIMIT 1"
+    Storage::Commands.select_by(connection, sql, [rule_id], 'zone_id')
+  end
+
   def update_trackers_state(connection, table, array_value)
     state = array_value.first
     ids = array_value.last
     changed_at = Time.now.to_i
     sql = "INSERT or REPLACE INTO #{table} (id, movement_status, changed_at) VALUES (?, ?, ?)"
     ids.each { |id| Storage::Commands.upsert(connection, sql, [id, state, changed_at]) }
+  end
+
+  def delete_by(connection, table, item_key)
+    sql = "DELETE FROM #{table} WHERE tracker_id = ?"
+    Storage::Commands.upsert(connection, sql, [item_key])
   end
 
   # Save NSI data

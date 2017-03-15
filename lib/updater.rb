@@ -14,19 +14,19 @@ module Updater
   end
 
   def update_live(connection)
-    connection.setAutoCommit(false)
-    _trackers_state(connection)
-    # _tracker_zone(connection)
+    ids = _tracker_ids(connection)
+    _trackers_state(connection, ids)
+    _tracker_zone(connection, ids)
   end
 
-  def _trackers_state(connection)
-    ids = _tracker_ids(connection)
+  def _trackers_state(connection, tracker_ids)
     # get states from API
-    states = ExtService::Navixy.tracker_states(ids)
+    states = ExtService::Navixy.tracker_states(tracker_ids)
     # generate only changed states
     changed_states = _changed_states(connection, states)
     # update ids with changed state
     begin
+      connection.setAutoCommit(false)
       changed_states.each do |item|
         Storage.update_trackers_state(connection, 'tracker_states', item)
       end
@@ -35,6 +35,44 @@ module Updater
       connection.rollback
       puts e.to_s
     end
+  end
+
+  def _tracker_zone(connection, tracker_ids)
+    events = ExtService::Navixy.events(tracker_ids)
+    begin
+      connection.setAutoCommit(false)
+      events.each { |event| _process_event(connection, event) }
+      connection.commit
+    rescue => e
+      connection.rollback
+      puts e.to_s
+    end
+  end
+
+  def _process_event(connection, event)
+    case event['event']
+    when 'inzone'
+      _add_tracker_zone(connection, event)
+    when 'outzone'
+      _del_tracker_zone(connection, event)
+    end
+  end
+
+  def _del_tracker_zone(connection, event)
+    Storage.delete_by(connection, 'tracker_zone', event['tracker_id'])
+  end
+
+  def _add_tracker_zone(connection, event)
+    item = {
+      'tracker_id' => event['tracker_id'],
+      'zone_id' => _zone_by_rule(connection, event['rule_id']),
+      'changed_at' => Time.now.to_i
+    }
+    Storage.upsert_into(connection, 'tracker_zone', item)
+  end
+
+  def _zone_by_rule(connection, rule_id)
+    Storage.select_zone_by_rule(connection, rule_id).first
   end
 
   def _changed_states(connection, new_states)
