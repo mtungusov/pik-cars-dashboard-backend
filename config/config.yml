@@ -4,6 +4,7 @@ defaults: &defaults
   period_in_days_api_token_update: 20
   perion_nsi_update: 300
   period_live_update: 60
+  time_shift_first_events_update: 18000
 
 development:
   <<: *defaults

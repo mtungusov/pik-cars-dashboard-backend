@@ -35,6 +35,27 @@ module ExtService::Navixy
       resp.body['success'] ? resp.body['list'] : []
     end
 
+    def events(from:, to:, tracker_ids:, event_types:)
+      return [] if (tracker_ids.empty? or event_types.empty?)
+      return [] unless auth?
+      url = '/v2/history/tracker/list'
+      resp = @connection.post do |req|
+        req.url url
+        req.params['hash'] = @token
+        req.body = _events_params_encode(from, to, tracker_ids, event_types)
+      end
+      resp.body['success'] ? resp.body['list'] : []
+    end
+
+    def _events_params_encode(from, to, tracker_ids, event_types)
+      params = []
+      params << "from=#{URI.encode_www_form_component(from)}"
+      params << "to=#{URI.encode_www_form_component(to)}"
+      params << "trackers=#{URI.encode_www_form_component(tracker_ids)}"
+      params << "events=#{URI.encode_www_form_component(event_types)}"
+      params.join('&')
+    end
+
     def tracker_states(tracker_ids)
       return {} if tracker_ids.empty?
       return {} unless auth?
@@ -93,6 +114,7 @@ module ExtService::Navixy
   module_function
 
   def api
+    @@event_last_update ||= Time.now.to_i - Settings::ALL.time_shift_first_events_update
     @@navixy ||= NavixyApi.new
   end
 
@@ -143,4 +165,22 @@ module ExtService::Navixy
       acc
     end
   end
+
+  def events(tracker_ids)
+    time_delay = 20
+    event_types = ['inzone', 'outzone']
+    fmt = '%Y-%m-%-d %H:%M:%S'
+    from = Time.at(@@event_last_update-time_delay).strftime(fmt)
+    now = Time.now.to_i
+    @@event_last_update = now
+    to = Time.at(now).strftime(fmt)
+    api.events(from: from, to: to, tracker_ids: tracker_ids, event_types: event_types).map do |h|
+      {
+        'event' => h['event'],
+        'tracker_id' => h['tracker_id'],
+        'rule_id' => h['rule_id']
+      }
+    end
+  end
+
 end
