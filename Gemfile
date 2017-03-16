@@ -8,6 +8,7 @@ gem 'settingslogic'
 gem 'puma'
 gem 'rack-contrib'
 gem 'sinatra'
+gem 'sinatra-contrib'
 gem 'sinatra-param'
 
 group :development do

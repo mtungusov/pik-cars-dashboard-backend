@@ -18,6 +18,7 @@ dependencies {
     gems 'rubygems:puma:3.8.2'
     gems 'rubygems:rack-contrib:1.4.0'
     gems 'rubygems:sinatra:1.4.8'
+    gems 'rubygems:sinatra-contrib:1.4.7'
     gems 'rubygems:sinatra-param:1.4.0'
     gems 'rubygems:pry:0.10.4'
 }
