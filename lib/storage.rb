@@ -41,18 +41,10 @@ module Storage
     Storage::Commands.upsert(connection, sql, [item_key])
   end
 
-  # Save NSI data
-  def save_nsi
-    # groups
-    # rules
-    # zones
-    # trackers
+  def trackers_info(connection, ids=[])
+    param_ids = ids.empty? ? select_ids($conn_read_api, 'trackers_info') : ids
+    sql = "SELECT * FROM trackers_info WHERE id IN (#{param_ids.join(',')})"
+    Storage::Commands.select_trackers_info(connection, sql)
   end
 
-  # Save Work data
-  def save
-    # tracker states
-    # tracker in Zone
-    # Last Time Events check -> Atom(DateTime)
-  end
 end

@@ -36,20 +36,38 @@ module Storage::Commands
     pstmt.close unless pstmt.closed?
   end
 
-  # def select_tracker_ids_by_state(connection, sql, ids)
-  #   result = []
-  #   pstmt = connection.prepareStatement(sql)
-  #   pstmt.setArray()
-  #   rs = pstmt.executeQuery
-  #   while rs.next
-  #     result << rs.getLong('id')
-  #   end
-  #   return result
-  # ensure
-  #   rs.close if (rs and !rs.closed?)
-  #   pstmt.close unless pstmt.closed?
-  # end
-  #
+  def select_trackers_info(connection, sql)
+    result = {}
+    stmt = connection.createStatement
+    rs = stmt.executeQuery(sql)
+    while rs.next
+      result.merge!(_tracker_info(rs))
+    end
+    return result
+  ensure
+    rs.close if (rs and !rs.closed?)
+    stmt.close unless stmt.closed?
+  end
+
+  def _tracker_info(rs)
+    { rs.getLong('id') => {
+      label: rs.getString('label'),
+      group: {
+        id: rs.getLong('group_id'),
+        title: rs.getString('group_title')
+      },
+      status: {
+        label: rs.getString('status'),
+        changed_at: rs.getLong('status_changed_at')
+      },
+      zone: {
+        id: rs.getLong('zone_id'),
+        label: rs.getString('zone_label'),
+        changed_at: rs.getLong('zone_changed_at')
+      }
+    } }
+  end
+
   def _set_param(pstmt, index, value)
     case value.class
     when Fixnum

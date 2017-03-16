@@ -11,7 +11,7 @@ module API
       post '/trackers' do
         param :ids, Array, default: []
 
-        { ids: params[:ids] }.to_json
+        ::Storage.trackers_info($conn_read_api, params[:ids]).to_json
       end
     end
   end
