@@ -15,11 +15,16 @@ dependencies {
     gems 'rubygems:dotenv:2.2.0'
     gems 'rubygems:faraday:0.11.0'
     gems 'rubygems:faraday_middleware:0.11.0.1'
-    //gems 'rubygems:concurrent-ruby:1.0.4'
+    gems 'rubygems:puma:3.8.2'
+    gems 'rubygems:rack-contrib:1.4.0'
+    gems 'rubygems:sinatra:1.4.8'
+    gems 'rubygems:sinatra-param:1.4.0'
     gems 'rubygems:pry:0.10.4'
 }
 
 jrubyJar {
-    initScript "${projectDir}/app.rb"
+    //initScript "${projectDir}/app.rb"
+    initScript runnable()
+    from 'config.ru'
     into('lib') { from 'lib' }
 }

@@ -9,6 +9,7 @@ GEM
     faraday_middleware (0.11.0.1)
       faraday (>= 0.7.4, < 1.0)
     ffi (1.9.17-java)
+    git-version-bump (0.15.1)
     method_source (0.8.2)
     multipart-post (2.0.0)
     parser (2.4.0.0)
@@ -19,6 +20,13 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
       spoon (~> 0.0)
+    puma (3.8.2-java)
+    rack (1.6.5)
+    rack-contrib (1.4.0)
+      git-version-bump (~> 0.15)
+      rack (~> 1.4)
+    rack-protection (1.5.3)
+      rack
     rainbow (2.2.1)
     rubocop (0.47.1)
       parser (>= 2.3.3.1, < 3.0)
@@ -28,9 +36,16 @@ GEM
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.8.1)
     settingslogic (2.0.9)
+    sinatra (1.4.8)
+      rack (~> 1.5)
+      rack-protection (~> 1.4)
+      tilt (>= 1.3, < 3)
+    sinatra-param (1.4.0)
+      sinatra (~> 1.3)
     slop (3.6.0)
     spoon (0.0.6)
       ffi
+    tilt (2.0.6)
     unicode-display_width (1.1.3)
 
 PLATFORMS
@@ -41,8 +56,12 @@ DEPENDENCIES
   faraday
   faraday_middleware
   pry
+  puma
+  rack-contrib
   rubocop
   settingslogic
+  sinatra
+  sinatra-param
 
 BUNDLED WITH
    1.14.6
