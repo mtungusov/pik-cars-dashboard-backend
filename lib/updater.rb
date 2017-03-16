@@ -3,10 +3,10 @@ module Updater
 
   def update_nsi(connection)
     connection.setAutoCommit(false)
+    _trackers(connection)
     _groups(connection)
     _rules(connection)
     _zones(connection)
-    _trackers(connection)
     connection.commit
   rescue => e
     connection.rollback

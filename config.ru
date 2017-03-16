@@ -20,16 +20,20 @@ require 'lib/updater'
 require 'thread'
 Thread.abort_on_exception = true
 
+# $conn_write_nsi = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
+$conn_write_nsi = Storage.client(db_file: '').open
+$conn_write_live = Storage.client(db_file: '').open
+$conn_read_api = Storage.client(db_file: '').open
+
 Thread.new do
-  $conn_write_nsi = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
   loop do
     Updater.update_nsi $conn_write_nsi
     sleep Settings::ALL.perion_nsi_update
   end
 end
+sleep 10
 
 Thread.new do
-  $conn_write_live = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
   loop do
     Updater.update_live $conn_write_live
     sleep Settings::ALL.period_live_update
@@ -38,11 +42,11 @@ end
 
 #
 # $conn_write_test = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
+#
 # require 'pry'
 # binding.pry
 #
 
-$conn_read_api = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
 
 require 'rack/contrib/nested_params'
 require 'rack/contrib/post_body_content_type_parser'
