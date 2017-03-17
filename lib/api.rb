@@ -9,8 +9,12 @@ module API
       content_type :json
     end
 
-    get '/' do
+    get '/api' do
       { result: 'Pik-Cars-Dashboard API Server. Path: /api/v1/' }.to_json
+    end
+
+    get '/api/ping' do
+      { result: 'pong' }.to_json
     end
   end
 end
