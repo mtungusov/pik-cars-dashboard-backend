@@ -37,11 +37,11 @@ module Storage::Commands
   end
 
   def select_trackers_info(connection, sql)
-    result = {}
+    result = []
     stmt = connection.createStatement
     rs = stmt.executeQuery(sql)
     while rs.next
-      result.merge!(_tracker_info(rs))
+      result << _tracker_info(rs)
     end
     return result
   ensure
@@ -50,7 +50,8 @@ module Storage::Commands
   end
 
   def _tracker_info(rs)
-    { rs.getLong('id') => {
+    {
+      id: rs.getLong('id'),
       label: rs.getString('label'),
       group: {
         id: rs.getLong('group_id'),
@@ -65,7 +66,7 @@ module Storage::Commands
         label: rs.getString('zone_label'),
         changed_at: rs.getLong('zone_changed_at')
       }
-    } }
+    }
   end
 
   def _set_param(pstmt, index, value)
