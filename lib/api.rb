@@ -6,6 +6,8 @@ require 'sinatra/param'
 module API
   class App < Sinatra::Base
     before do
+      headers['Access-Control-Allow-Origin'] = '*'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
       content_type :json
     end
 
