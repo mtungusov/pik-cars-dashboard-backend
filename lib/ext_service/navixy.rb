@@ -158,10 +158,12 @@ module ExtService::Navixy
   end
 
   def tracker_states(tracker_ids)
+    # return { state1:[ [id, changed_at],... ], ... }
     api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
       status = v['movement_status']
+      changed_at = v['last_update']
       acc[status] = [] unless acc.key?(status)
-      acc[status] << k.to_i
+      acc[status] << [k.to_i, changed_at]
       acc
     end
   end
@@ -178,7 +180,8 @@ module ExtService::Navixy
       {
         'event' => h['event'],
         'tracker_id' => h['tracker_id'],
-        'rule_id' => h['rule_id']
+        'rule_id' => h['rule_id'],
+        'time' => h['time']
       }
     end
   end

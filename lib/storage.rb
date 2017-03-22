@@ -30,10 +30,10 @@ module Storage
 
   def update_trackers_state(connection, table, array_value)
     state = array_value.first
-    ids = array_value.last
-    changed_at = Time.now.to_i
+    items = array_value.last
+    # changed_at = Time.now.to_i
     sql = "INSERT or REPLACE INTO #{table} (id, movement_status, changed_at) VALUES (?, ?, ?)"
-    ids.each { |id| Storage::Commands.upsert(connection, sql, [id, state, changed_at]) }
+    items.each { |(id, changed_at)| Storage::Commands.upsert(connection, sql, [id, state, changed_at]) }
   end
 
   def delete_by(connection, table, item_key)
