@@ -66,7 +66,7 @@ module Storage
                 groups.id AS group_id, groups.title AS group_title,
                 tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
                 zones.id AS zone_id, zones.label AS zone_label, tracker_zone.changed_at AS zone_changed_at,
-                strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_zone.changed_at, 'unixepoch')))) as zone_time_diff
+                CAST(strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_zone.changed_at, 'unixepoch')))) AS INTEGER) as zone_time_diff
               FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
                 LEFT JOIN tracker_states ON trackers.id = tracker_states.id
                 LEFT JOIN tracker_zone ON trackers.id = tracker_zone.tracker_id
