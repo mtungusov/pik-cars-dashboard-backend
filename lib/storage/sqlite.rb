@@ -61,15 +61,17 @@ module Storage
               changed_at INTEGER
             );'
       stmt.execute(sql)
-      sql = 'CREATE VIEW trackers_info AS
-            SELECT trackers.id AS id, trackers.label AS label,
-              groups.id AS group_id, groups.title AS group_title,
-              tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
-              zones.id AS zone_id, zones.label AS zone_label, tracker_zone.changed_at AS zone_changed_at
-            FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
-              LEFT JOIN tracker_states ON trackers.id = tracker_states.id
-              LEFT JOIN tracker_zone ON trackers.id = tracker_zone.tracker_id
-              LEFT JOIN zones ON tracker_zone.zone_id = zones.id;'
+      sql = "CREATE VIEW trackers_info AS
+              SELECT trackers.id AS id, trackers.label AS label,
+                groups.id AS group_id, groups.title AS group_title,
+                tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
+                zones.id AS zone_id, zones.label AS zone_label, tracker_zone.changed_at AS zone_changed_at,
+                strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_zone.changed_at, 'unixepoch')))) as zone_time_diff
+              FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
+                LEFT JOIN tracker_states ON trackers.id = tracker_states.id
+                LEFT JOIN tracker_zone ON trackers.id = tracker_zone.tracker_id
+                LEFT JOIN zones ON tracker_zone.zone_id = zones.id
+              ORDER BY zone_time_diff DESC;"
       stmt.execute(sql)
       stmt.close unless stmt.closed?
       conn.close unless conn.closed?
