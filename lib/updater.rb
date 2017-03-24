@@ -22,7 +22,7 @@ module Updater
   def _trackers_state(connection, tracker_ids)
     # get states from API
     states = ExtService::Navixy.tracker_states(tracker_ids)
-    # { state1:[ [id, changed_at],... ], ... }
+    # { state1:[ [id, changed_at, connection_status],... ], ... }
     #
     # generate only changed states
     changed_states = _changed_states(connection, states)
@@ -88,12 +88,12 @@ module Updater
   end
 
   def _changed_states(connection, new_states)
-    # new_states = { state1:[ [id, changed_at],... ], ... }
+    # new_states = { state1:[ [id, changed_at, connection_status],... ], ... }
     result = {}
     new_states.each do |state, items|
       old_ids = Storage.select_trackers_by_state(connection, state)
-      changed_ids = items.inject([]) do |acc, (id, changed_at)|
-        acc << [id, parse_change_at(changed_at)] unless old_ids.include?(id)
+      changed_ids = items.inject([]) do |acc, (id, changed_at, connection_status)|
+        acc << [id, parse_change_at(changed_at), connection_status] unless old_ids.include?(id)
         acc
       end
       result[state] = changed_ids unless changed_ids.empty?

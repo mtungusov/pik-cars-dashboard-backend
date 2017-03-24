@@ -59,7 +59,8 @@ module Storage::Commands
       },
       status: {
         label: rs.getString('status'),
-        changed_at: rs.getLong('status_changed_at')
+        changed_at: rs.getLong('status_changed_at'),
+        connection: rs.getString('status_connection')
       },
       zone: {
         id: rs.getLong('zone_id'),

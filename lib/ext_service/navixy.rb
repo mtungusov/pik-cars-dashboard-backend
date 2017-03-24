@@ -162,8 +162,9 @@ module ExtService::Navixy
     api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
       status = v['movement_status']
       changed_at = v['last_update']
+      connection = v['connection_status']
       acc[status] = [] unless acc.key?(status)
-      acc[status] << [k.to_i, changed_at]
+      acc[status] << [k.to_i, changed_at, connection]
       acc
     end
   end

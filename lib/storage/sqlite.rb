@@ -52,7 +52,8 @@ module Storage
       sql = 'CREATE TABLE tracker_states (
               id INTEGER PRIMARY KEY,
               movement_status TEXT,
-              changed_at INTEGER
+              changed_at INTEGER,
+              connection_status TEXT
             );'
       stmt.execute(sql)
       sql = 'CREATE TABLE tracker_zone (
@@ -65,6 +66,7 @@ module Storage
               SELECT trackers.id AS id, trackers.label AS label,
                 groups.id AS group_id, groups.title AS group_title,
                 tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
+                tracker_states.connection_status AS status_connection,
                 zones.id AS zone_id, zones.label AS zone_label, tracker_zone.changed_at AS zone_changed_at,
                 CAST(strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_zone.changed_at, 'unixepoch')))) AS INTEGER) as zone_time_diff
               FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id

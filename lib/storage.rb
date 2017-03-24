@@ -32,8 +32,10 @@ module Storage
     state = array_value.first
     items = array_value.last
     # changed_at = Time.now.to_i
-    sql = "INSERT or REPLACE INTO #{table} (id, movement_status, changed_at) VALUES (?, ?, ?)"
-    items.each { |(id, changed_at)| Storage::Commands.upsert(connection, sql, [id, state, changed_at]) }
+    sql = "INSERT or REPLACE INTO #{table} (id, movement_status, changed_at, connection_status) VALUES (?, ?, ?, ?)"
+    items.each do |(id, changed_at, connection_status)|
+      Storage::Commands.upsert(connection, sql, [id, state, changed_at, connection_status])
+    end
   end
 
   def delete_by(connection, table, item_key)
