@@ -49,4 +49,9 @@ module Storage
     Storage::Commands.select_trackers_info(connection, sql)
   end
 
+  def zones(connection)
+    sql = "SELECT * FROM zones ORDER BY label"
+    fields = [[:id, :long], [:label, :string]]
+    Storage::Commands.select_all(connection, sql, fields)
+  end
 end

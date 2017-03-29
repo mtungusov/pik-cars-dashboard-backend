@@ -49,6 +49,33 @@ module Storage::Commands
     stmt.close unless stmt.closed?
   end
 
+  def select_all(connection, sql, fields)
+    # fields -> [[:name, :type], ...]
+    result = []
+    stmt = connection.createStatement
+    rs = stmt.executeQuery(sql)
+    while rs.next
+      result << _process_fields(rs, fields)
+    end
+    return result
+  ensure
+    rs.close if (rs and !rs.closed?)
+    stmt.close unless stmt.closed?
+  end
+
+  def _process_fields(rs, fields)
+    # fields -> [[:name, :type], ...]
+    fields.inject({}) do |acc, (field_name, field_type)|
+      acc[field_name] = case field_type
+                        when :long
+                          rs.getLong(field_name.to_s)
+                        else
+                          rs.getString(field_name.to_s)
+      end
+      acc
+    end
+  end
+
   def _tracker_info(rs)
     {
       id: rs.getLong('id'),

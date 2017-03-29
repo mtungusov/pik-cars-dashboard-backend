@@ -13,6 +13,10 @@ module API
 
         ::Storage.trackers_info($conn_read_api, params[:ids]).to_json
       end
+
+      get '/zones' do
+        ::Storage.zones($conn_read_api).to_json
+      end
     end
   end
 end
