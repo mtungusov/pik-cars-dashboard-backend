@@ -179,8 +179,11 @@ module ExtService::Navixy
     puts "********************************************"
     puts "Events from: #{from}, to: #{to}"
     puts "********************************************"
-    _events = api.events(from: from, to: to, tracker_ids: tracker_ids, event_types: event_types)
-    # puts _events.inspect
+
+    _events = tracker_ids.inject([]) do |acc, tracker_id|
+      acc + api.events(from: from, to: to, tracker_ids: [tracker_id], event_types: event_types)
+    end
+
     @@event_last_update = now unless _events.empty?
     _events.map do |h|
       {

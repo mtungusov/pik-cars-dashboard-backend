@@ -67,13 +67,6 @@ module Updater
 
   def _add_tracker_zone(connection, event)
     changed_at = parse_change_at(event['time'])
-    # item = {
-    #   'tracker_id' => event['tracker_id'],
-    #   'zone_id' => _zone_by_rule(connection, event['rule_id']),
-    #   'changed_at' => changed_at
-    # }
-    # Storage.upsert_into(connection, 'tracker_zone', item)
-    #
     item = {
       'tracker_id' => event['tracker_id'],
       'rule_id' => event['rule_id'],
