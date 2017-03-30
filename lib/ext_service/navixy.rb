@@ -170,14 +170,19 @@ module ExtService::Navixy
   end
 
   def events(tracker_ids)
-    time_delay = 20
+    time_delay = 70
     event_types = ['inzone', 'outzone']
     fmt = '%Y-%m-%-d %H:%M:%S'
-    from = Time.at(@@event_last_update-time_delay).strftime(fmt)
+    from = Time.at(@@event_last_update - time_delay).strftime(fmt)
     now = Time.now.to_i
-    @@event_last_update = now
     to = Time.at(now).strftime(fmt)
-    api.events(from: from, to: to, tracker_ids: tracker_ids, event_types: event_types).map do |h|
+    puts "********************************************"
+    puts "Events from: #{from}, to: #{to}"
+    puts "********************************************"
+    _events = api.events(from: from, to: to, tracker_ids: tracker_ids, event_types: event_types)
+    # puts _events.inspect
+    @@event_last_update = now unless _events.empty?
+    _events.map do |h|
       {
         'event' => h['event'],
         'tracker_id' => h['tracker_id'],

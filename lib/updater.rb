@@ -15,6 +15,7 @@ module Updater
 
   def update_live(connection)
     ids = _tracker_ids(connection)
+    # puts ids.inspect
     _trackers_state(connection, ids)
     _tracker_zone(connection, ids)
   end
@@ -61,17 +62,24 @@ module Updater
   end
 
   def _del_tracker_zone(connection, event)
-    Storage.delete_by(connection, 'tracker_zone', event['tracker_id'])
+    Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
   end
 
   def _add_tracker_zone(connection, event)
     changed_at = parse_change_at(event['time'])
+    # item = {
+    #   'tracker_id' => event['tracker_id'],
+    #   'zone_id' => _zone_by_rule(connection, event['rule_id']),
+    #   'changed_at' => changed_at
+    # }
+    # Storage.upsert_into(connection, 'tracker_zone', item)
+    #
     item = {
       'tracker_id' => event['tracker_id'],
-      'zone_id' => _zone_by_rule(connection, event['rule_id']),
+      'rule_id' => event['rule_id'],
       'changed_at' => changed_at
     }
-    Storage.upsert_into(connection, 'tracker_zone', item)
+    Storage.upsert_into(connection, 'tracker_rule', item)
   end
 
   def parse_change_at(time_str)

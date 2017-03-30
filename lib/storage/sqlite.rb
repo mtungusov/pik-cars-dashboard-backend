@@ -56,24 +56,31 @@ module Storage
               connection_status TEXT
             );'
       stmt.execute(sql)
-      sql = 'CREATE TABLE tracker_zone (
+      # sql = 'CREATE TABLE tracker_zone (
+      #         tracker_id INTEGER PRIMARY KEY,
+      #         zone_id INTEGER,
+      #         changed_at INTEGER
+      #       );'
+      # stmt.execute(sql)
+      sql = 'CREATE TABLE tracker_rule (
               tracker_id INTEGER PRIMARY KEY,
-              zone_id INTEGER,
+              rule_id INTEGER,
               changed_at INTEGER
-            );'
+            )'
       stmt.execute(sql)
       sql = "CREATE VIEW trackers_info AS
-              SELECT trackers.id AS id, trackers.label AS label,
-                groups.id AS group_id, groups.title AS group_title,
-                tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
-                tracker_states.connection_status AS status_connection,
-                zones.id AS zone_id, zones.label AS zone_label, tracker_zone.changed_at AS zone_changed_at,
-                CAST(strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_zone.changed_at, 'unixepoch')))) AS INTEGER) as zone_time_diff
-              FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
-                LEFT JOIN tracker_states ON trackers.id = tracker_states.id
-                LEFT JOIN tracker_zone ON trackers.id = tracker_zone.tracker_id
-                LEFT JOIN zones ON tracker_zone.zone_id = zones.id
-              ORDER BY zone_time_diff DESC;"
+            SELECT trackers.id AS id, trackers.label AS label,
+              groups.id AS group_id, groups.title AS group_title,
+              tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
+              tracker_states.connection_status AS status_connection,
+              zones.id AS zone_id, zones.label AS zone_label, tracker_rule.changed_at AS zone_changed_at,
+              CAST(strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_rule.changed_at, 'unixepoch')))) AS INTEGER) as zone_time_diff
+            FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
+              LEFT JOIN tracker_states ON trackers.id = tracker_states.id
+              LEFT JOIN tracker_rule ON trackers.id = tracker_rule.tracker_id
+              LEFT JOIN rules ON rules.id = tracker_rule.rule_id
+              LEFT JOIN zones ON rules.zone_id = zones.id
+            ORDER BY zone_time_diff DESC"
       stmt.execute(sql)
       stmt.close unless stmt.closed?
       conn.close unless conn.closed?

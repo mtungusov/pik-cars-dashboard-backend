@@ -21,9 +21,11 @@ require 'thread'
 Thread.abort_on_exception = true
 
 # $conn_write_nsi = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
-$conn_write_nsi = Storage.client(db_file: '').open
-$conn_write_live = Storage.client(db_file: '').open
-$conn_read_api = Storage.client(db_file: '').open
+# DB_CONNECTION_STRING = File.join(Settings::CUR_DIR, 'db', 'db.sqlite')
+DB_CONNECTION_STRING = ''
+$conn_write_nsi = Storage.client(db_file: DB_CONNECTION_STRING).open
+$conn_write_live = Storage.client(db_file: DB_CONNECTION_STRING).open
+$conn_read_api = Storage.client(db_file: DB_CONNECTION_STRING).open
 
 Thread.new do
   loop do
