@@ -175,7 +175,6 @@ module ExtService::Navixy
 
   def events(tracker_ids)
     time_delay = 70
-    event_types = ['inzone', 'outzone']
     fmt = '%Y-%m-%-d %H:%M:%S'
     from = Time.at(@@event_last_update - time_delay).strftime(fmt)
     now = Time.now.to_i
@@ -185,9 +184,9 @@ module ExtService::Navixy
     puts '********************************************'
 
     _events = tracker_ids.inject({ result: [], errors: [] }) do |acc, tracker_id|
-      r, err = api.events(from: from, to: to, tracker_ids: [tracker_id], event_types: event_types)
-      acc[:result] += r
-      acc[:errors] << err if err
+      r = _events_by(tracker_id, from, to)
+      acc[:result] += r[:result] unless r[:result].empty?
+      acc[:errors] += r[:errors] unless r[:errors].empty?
       acc
     end
 
@@ -206,6 +205,18 @@ module ExtService::Navixy
         'time' => h['time']
       }
     end
+  end
+
+  def _events_by(tracker, from, to, result: { result: [], errors: [] })
+    event_types = ['inzone', 'outzone']
+    r, err = api.events(from: from, to: to, tracker_ids: [tracker], event_types: event_types)
+    result[:result] += r
+    result[:errors] << err if err
+    if r.size >= 1000
+      _from = r.last['time']
+      _events_by(tracker, _from, to, result: result)
+    end
+    result
   end
 
 end
