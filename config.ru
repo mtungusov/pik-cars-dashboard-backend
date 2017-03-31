@@ -13,6 +13,7 @@ puts "Update NSI in: #{Settings::ALL.perion_nsi_update} sec"
 
 
 require 'lib/ext_service'
+
 require 'lib/storage'
 
 require 'lib/updater'

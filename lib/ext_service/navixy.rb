@@ -36,15 +36,19 @@ module ExtService::Navixy
     end
 
     def events(from:, to:, tracker_ids:, event_types:)
-      return [] if (tracker_ids.empty? or event_types.empty?)
-      return [] unless auth?
+      r, err = [], nil
+      return [r, 'Empty tracker_ids or event_types'] if (tracker_ids.empty? or event_types.empty?)
+      return [r, 'Unauthorized'] unless auth?
       url = '/v2/history/tracker/list'
       resp = @connection.post do |req|
         req.url url
         req.params['hash'] = @token
         req.body = _events_params_encode(from, to, tracker_ids, event_types)
       end
-      resp.body['success'] ? resp.body['list'] : []
+      resp.body['success'] ? r = resp.body['list'] : err = resp.body['status']['description']
+      [r, err]
+    rescue => e
+      [r, e.message]
     end
 
     def _events_params_encode(from, to, tracker_ids, event_types)
@@ -176,16 +180,25 @@ module ExtService::Navixy
     from = Time.at(@@event_last_update - time_delay).strftime(fmt)
     now = Time.now.to_i
     to = Time.at(now).strftime(fmt)
-    puts "********************************************"
+    puts '********************************************'
     puts "Events from: #{from}, to: #{to}"
-    puts "********************************************"
+    puts '********************************************'
 
-    _events = tracker_ids.inject([]) do |acc, tracker_id|
-      acc + api.events(from: from, to: to, tracker_ids: [tracker_id], event_types: event_types)
+    _events = tracker_ids.inject({ result: [], errors: [] }) do |acc, tracker_id|
+      r, err = api.events(from: from, to: to, tracker_ids: [tracker_id], event_types: event_types)
+      acc[:result] += r
+      acc[:errors] << err if err
+      acc
     end
 
-    @@event_last_update = now unless _events.empty?
-    _events.map do |h|
+    @@event_last_update = now if (_events[:errors].empty? and !_events[:result].empty?)
+    unless _events[:errors].empty?
+      puts '********************************************'
+      _events[:errors].each { |e| puts "Errors: #{e}" }
+      puts '********************************************'
+    end
+
+    _events[:result].map do |h|
       {
         'event' => h['event'],
         'tracker_id' => h['tracker_id'],

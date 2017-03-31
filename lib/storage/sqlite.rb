@@ -56,12 +56,6 @@ module Storage
               connection_status TEXT
             );'
       stmt.execute(sql)
-      # sql = 'CREATE TABLE tracker_zone (
-      #         tracker_id INTEGER PRIMARY KEY,
-      #         zone_id INTEGER,
-      #         changed_at INTEGER
-      #       );'
-      # stmt.execute(sql)
       sql = 'CREATE TABLE tracker_rule (
               tracker_id INTEGER PRIMARY KEY,
               rule_id INTEGER,
@@ -80,7 +74,10 @@ module Storage
               LEFT JOIN tracker_rule ON trackers.id = tracker_rule.tracker_id
               LEFT JOIN rules ON rules.id = tracker_rule.rule_id
               LEFT JOIN zones ON rules.zone_id = zones.id
-            ORDER BY zone_time_diff DESC"
+            ORDER BY (CASE coalesce(zone_label, 'empty')
+                      WHEN 'empty' THEN 2
+                      ELSE 1
+                      END ), zone_label, zone_time_diff DESC"
       stmt.execute(sql)
       stmt.close unless stmt.closed?
       conn.close unless conn.closed?
