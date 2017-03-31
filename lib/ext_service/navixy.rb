@@ -4,6 +4,8 @@ require 'faraday_middleware'
 module ExtService; end
 
 module ExtService::Navixy
+  API_LIMIT = 1000
+
   class NavixyApi
     def initialize
       @url = 'https://api.navixy.com'
@@ -212,7 +214,7 @@ module ExtService::Navixy
     r, err = api.events(from: from, to: to, tracker_ids: [tracker], event_types: event_types)
     result[:result] += r
     result[:errors] << err if err
-    if r.size >= 1000
+    if r.size >= API_LIMIT
       _from = r.last['time']
       _events_by(tracker, _from, to, result: result)
     end
