@@ -55,21 +55,33 @@ module Updater
   def _process_event(connection, event)
     case event['event']
     when 'inzone'
-      _add_tracker_zone(connection, event)
+      _add_tracker_zone_in(connection, event)
     when 'outzone'
-      _del_tracker_zone(connection, event)
+      _add_tracker_zone_out(connection, event)
     end
   end
 
-  def _del_tracker_zone(connection, event)
-    Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
-  end
+  # def _del_tracker_zone(connection, event)
+  #   Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
+  # end
 
-  def _add_tracker_zone(connection, event)
+  def _add_tracker_zone_in(connection, event)
     changed_at = parse_change_at(event['time'])
     item = {
       'tracker_id' => event['tracker_id'],
       'rule_id' => event['rule_id'],
+      'event_type' => 'inzone',
+      'changed_at' => changed_at
+    }
+    Storage.upsert_into(connection, 'tracker_rule', item)
+  end
+
+  def _add_tracker_zone_out(connection, event)
+    changed_at = parse_change_at(event['time'])
+    item = {
+      'tracker_id' => event['tracker_id'],
+      'rule_id' => event['rule_id'],
+      'event_type' => 'outzone',
       'changed_at' => changed_at
     }
     Storage.upsert_into(connection, 'tracker_rule', item)

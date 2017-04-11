@@ -59,6 +59,7 @@ module Storage
       sql = 'CREATE TABLE tracker_rule (
               tracker_id INTEGER PRIMARY KEY,
               rule_id INTEGER,
+              event_type TEXT,
               changed_at INTEGER
             )'
       stmt.execute(sql)
@@ -68,6 +69,7 @@ module Storage
               tracker_states.movement_status AS status, tracker_states.changed_at AS status_changed_at,
               tracker_states.connection_status AS status_connection,
               zones.id AS zone_id, zones.label AS zone_label, tracker_rule.changed_at AS zone_changed_at,
+              tracker_rule.event_type AS event_type,
               CAST(strftime('%s', datetime('now', strftime('-%s seconds', datetime(tracker_rule.changed_at, 'unixepoch')))) AS INTEGER) as zone_time_diff
             FROM trackers LEFT JOIN groups ON trackers.group_id = groups.id
               LEFT JOIN tracker_states ON trackers.id = tracker_states.id
