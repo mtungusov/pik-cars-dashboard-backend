@@ -92,6 +92,7 @@ module Storage::Commands
       zone: {
         id: rs.getLong('zone_id'),
         label: rs.getString('zone_label'),
+        event_type: rs.getString('event_type'),
         changed_at: rs.getLong('zone_changed_at'),
         time_diff: rs.getLong('zone_time_diff')
       }
