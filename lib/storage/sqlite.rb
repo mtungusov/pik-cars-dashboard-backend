@@ -79,7 +79,7 @@ module Storage
             ORDER BY (CASE coalesce(zone_label, 'empty')
                       WHEN 'empty' THEN 2
                       ELSE 1
-                      END ), zone_label, zone_time_diff DESC"
+                      END ), event_type, zone_label, zone_time_diff DESC"
       stmt.execute(sql)
       stmt.close unless stmt.closed?
       conn.close unless conn.closed?
