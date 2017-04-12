@@ -15,7 +15,6 @@ module Updater
 
   def update_live(connection)
     ids = _tracker_ids(connection)
-    # puts ids.inspect
     _trackers_state(connection, ids)
     _tracker_zone(connection, ids)
   end
@@ -53,7 +52,8 @@ module Updater
   end
 
   def _process_event(connection, event)
-    _add_tracker_zone(connection, event)
+    _add_tracker_rule(connection, event)
+    _process_nested_tracker_rule(connection, event)
     # case event['event']
     # when 'inzone'
     #   _add_tracker_zone_in(connection, event)
@@ -62,11 +62,28 @@ module Updater
     # end
   end
 
+  def _process_nested_tracker_rule(connection, event)
+    _parent_rule_id = _tracker_rule_parent_id(event)
+    return unless _parent_rule_id
+    _event = { 'rule_id' => _parent_rule_id, 'event' => 'inzone' }
+    _add_tracker_rule(connection, event.merge(_event))
+  end
+
+  def _tracker_rule_parent_id(event)
+    return unless event['event'] == 'outzone'
+    _get_rule_parent_id(event['rule_id'])
+  end
+
+  RULE_TREE = { 162499 => 162723 }.freeze
+  def _get_rule_parent_id(rule_id)
+    RULE_TREE[rule_id]
+  end
+
   # def _del_tracker_zone(connection, event)
   #   Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
   # end
 
-  def _add_tracker_zone(connection, event)
+  def _add_tracker_rule(connection, event)
     Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
     changed_at = parse_change_at(event['time'])
     item = {

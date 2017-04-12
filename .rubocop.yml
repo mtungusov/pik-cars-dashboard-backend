@@ -40,6 +40,9 @@ AllCops:
     - 'config/**/*'
     - 'db/**/*'
 
+Lint/UnderscorePrefixedVariableName:
+  Enabled: false
+
 Style/ClassAndModuleChildren:
   SupportedStyles:
     - nested
@@ -50,6 +53,9 @@ Style/ClassVars:
     - 'lib/ext_service.rb'
 
 Style/Documentation:
+  Enabled: false
+
+Style/NumericLiterals:
   Enabled: false
 
 Metrics/LineLength:
