@@ -36,6 +36,29 @@ module Storage::Commands
     pstmt.close unless pstmt.closed?
   end
 
+  def select_history_tracker(connection, sql, values)
+    result = []
+    pstmt = connection.prepareStatement(sql)
+    _set_params(pstmt, values)
+    rs = pstmt.executeQuery
+    while rs.next
+      result << _history_tracker(rs)
+    end
+    return result
+  ensure
+    rs.close if (rs and !rs.closed?)
+    pstmt.close unless pstmt.closed?
+  end
+
+  def _history_tracker(rs)
+    {
+      event: rs.getString('event'),
+      time: rs.getString('time'),
+      tracker_id: rs.getLong('tracker_id'),
+      rule_id: rs.getLong('rule_id')
+    }
+  end
+
   def select_trackers_info(connection, sql)
     result = []
     stmt = connection.createStatement

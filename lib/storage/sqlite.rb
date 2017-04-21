@@ -63,6 +63,21 @@ module Storage
               changed_at INTEGER
             )'
       stmt.execute(sql)
+      sql = 'CREATE TABLE history_tracker (
+              id INTEGER PRIMARY KEY,
+              event TEXT,
+              time TEXT,
+              tracker_id INTEGER,
+              rule_id INTEGER,
+              message TEXT
+            )'
+      stmt.execute(sql)
+      sql = 'CREATE INDEX idx_history_tracker_tracker_id
+              ON history_tracker(tracker_id)'
+      stmt.execute(sql)
+      sql = 'CREATE INDEX idx_history_tracker_time
+              ON history_tracker(time)'
+      stmt.execute(sql)
       sql = "CREATE VIEW trackers_info AS
             SELECT trackers.id AS id, trackers.label AS label,
               groups.id AS group_id, groups.title AS group_title,

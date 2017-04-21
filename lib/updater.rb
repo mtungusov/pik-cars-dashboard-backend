@@ -17,6 +17,7 @@ module Updater
     ids = _tracker_ids(connection)
     _trackers_state(connection, ids)
     _trackers_events(connection, ids)
+    _update_trackers_info(connection, ids)
   end
 
   def _trackers_state(connection, tracker_ids)
@@ -40,10 +41,13 @@ module Updater
   end
 
   def _trackers_events(connection, tracker_ids)
-    events = ExtService::Navixy.events(tracker_ids)
     begin
       connection.setAutoCommit(false)
-      events.each { |event| _process_event(connection, event) }
+      tracker_ids.each do |tracker_id|
+        _tracker_events(connection, tracker_id).each do |event|
+          _process_event(connection, event)
+        end
+      end
       connection.commit
     rescue => e
       connection.rollback
@@ -51,19 +55,50 @@ module Updater
     end
   end
 
+  def _tracker_events(connection, tracker_id)
+    from = _from_time_by_tracker(connection, tracker_id)
+    to = Time.now.strftime(ExtService::Navixy::TIME_FMT)
+    ExtService::Navixy.events_by(tracker_id, from, to)
+  end
+
+  def _from_time_by_tracker(connection, tracker_id)
+    history = Storage.select_last_history_tracker(connection, tracker_id).first
+    return history[:time] if history
+    (Time.now - Settings::ALL.time_shift_first_events_update).strftime(ExtService::Navixy::TIME_FMT)
+  end
+
   def _process_event(connection, event)
-    _add_tracker_rule(connection, event)
-    _process_nested_tracker_rule(connection, event)
-    # case event['event']
-    # when 'inzone'
-    #   _add_tracker_zone_in(connection, event)
-    # when 'outzone'
-    #   _add_tracker_zone_out(connection, event)
-    # end
+    _add_history_tracker(connection, event)
+  end
+
+  def _add_history_tracker(connection, event)
+    item = {
+      'id' => event['id'],
+      'event' => event['event'],
+      'time' => event['time'],
+      'tracker_id' => event['tracker_id'],
+      'rule_id' => event['rule_id'],
+      'message' => event['message']
+    }
+    Storage.upsert_into(connection, 'history_tracker', item)
+  end
+
+  def _update_trackers_info(connection, tracker_ids)
+    begin
+      connection.setAutoCommit(false)
+      tracker_ids.each do |tracker_id|
+        last_event = Storage.select_last_history_tracker(connection, tracker_id).first
+        _add_tracker_rule(connection, last_event)
+      end
+      connection.commit
+    rescue => e
+      connection.rollback
+      puts e.to_s
+    end
   end
 
   def _tracker_rule_parent_id(event)
-    return unless event['event'] == 'outzone'
+    return unless event['event_type'] == 'outzone'
     _get_rule_parent_id(event['rule_id'])
   end
 
@@ -72,40 +107,25 @@ module Updater
     RULE_TREE[rule_id]
   end
 
-  # def _del_tracker_zone(connection, event)
-  #   Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
-  # end
-
   def _add_tracker_rule(connection, event)
-    Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
-    changed_at = parse_change_at(event['time'])
-    item = {
-      'tracker_id' => event['tracker_id'],
-      'rule_id' => event['rule_id'],
-      'event_type' => event['event'],
-      'changed_at' => changed_at
-    }
+    Storage.delete_by(connection, 'tracker_rule', event[:tracker_id])
+    item = _tracker_rule(event)
     Storage.upsert_into(connection, 'tracker_rule', item)
   end
 
-  def _process_nested_tracker_rule(connection, event)
-    _parent_rule_id = _tracker_rule_parent_id(event)
-    return unless _parent_rule_id
-    _event = { 'rule_id' => _parent_rule_id, 'event' => 'inzone' }
-    _add_tracker_rule(connection, event.merge(_event))
+  def _tracker_rule(event)
+    changed_at = parse_change_at(event[:time])
+    item = {
+      'tracker_id' => event[:tracker_id],
+      'rule_id' => event[:rule_id],
+      'event_type' => event[:event],
+      'changed_at' => changed_at
+    }
+    # process nested zones
+    _parent_rule_id = _tracker_rule_parent_id(item)
+    return item unless _parent_rule_id
+    item.merge('rule_id' => _parent_rule_id, 'event_type' => 'inzone')
   end
-
-  # def _add_tracker_zone_out(connection, event)
-  #   Storage.delete_by(connection, 'tracker_rule', event['tracker_id'])
-  #   changed_at = parse_change_at(event['time'])
-  #   item = {
-  #     'tracker_id' => event['tracker_id'],
-  #     'rule_id' => event['rule_id'],
-  #     'event_type' => 'outzone',
-  #     'changed_at' => changed_at
-  #   }
-  #   Storage.upsert_into(connection, 'tracker_rule', item)
-  # end
 
   def parse_change_at(time_str)
     begin

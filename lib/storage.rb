@@ -28,6 +28,11 @@ module Storage
     Storage::Commands.select_by(connection, sql, [rule_id], 'zone_id')
   end
 
+  def select_last_history_tracker(connection, tracker_id)
+    sql = "SELECT event, time, tracker_id, rule_id FROM history_tracker WHERE tracker_id = ? ORDER BY time DESC LIMIT 1"
+    Storage::Commands.select_history_tracker(connection, sql, [tracker_id])
+  end
+
   def update_trackers_state(connection, table, array_value)
     state = array_value.first
     items = array_value.last

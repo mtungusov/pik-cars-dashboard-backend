@@ -5,6 +5,8 @@ module ExtService; end
 
 module ExtService::Navixy
   API_LIMIT = 1000
+  TIME_FMT = '%Y-%m-%-d %H:%M:%S'
+
 
   class NavixyApi
     def initialize
@@ -109,10 +111,10 @@ module ExtService::Navixy
 
     def _create_connection
       Faraday.new(url: @url) do |faraday|
-        faraday.request  :url_encoded             # form-encode POST params
-        faraday.response :logger                  # log requests to STDOUT
+        faraday.request  :url_encoded # form-encode POST params
+        faraday.response :logger, @logger, headers: false # log requests to STDOUT
         faraday.response :json, 'content-type' => 'application/json; charset=utf-8'
-        faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+        faraday.adapter  Faraday.default_adapter # make requests with Net::HTTP
       end
     end
   end
@@ -120,7 +122,6 @@ module ExtService::Navixy
   module_function
 
   def api
-    @@event_last_update ||= Time.now.to_i - Settings::ALL.time_shift_first_events_update
     @@navixy ||= NavixyApi.new
   end
 
@@ -175,48 +176,18 @@ module ExtService::Navixy
     end
   end
 
-  def events(tracker_ids)
-    time_delay = 70
-    fmt = '%Y-%m-%-d %H:%M:%S'
-    from = Time.at(@@event_last_update - time_delay).strftime(fmt)
-    now = Time.now.to_i
-    to = Time.at(now).strftime(fmt)
-    puts '********************************************'
-    puts "Events from: #{from}, to: #{to}"
-    puts '********************************************'
-
-    _events = tracker_ids.inject({ result: [], errors: [] }) do |acc, tracker_id|
-      r = _events_by(tracker_id, from, to)
-      acc[:result] += r[:result] unless r[:result].empty?
-      acc[:errors] += r[:errors] unless r[:errors].empty?
-      acc
-    end
-
-    @@event_last_update = now if (_events[:errors].empty? and !_events[:result].empty?)
-    unless _events[:errors].empty?
-      puts '********************************************'
-      _events[:errors].each { |e| puts "Errors: #{e}" }
-      puts '********************************************'
-    end
-
-    _events[:result].map do |h|
-      {
-        'event' => h['event'],
-        'tracker_id' => h['tracker_id'],
-        'rule_id' => h['rule_id'],
-        'time' => h['time']
-      }
-    end
-  end
-
-  def _events_by(tracker, from, to, result: { result: [], errors: [] })
+  def events_by(tracker, from, to, result: [])
     event_types = ['inzone', 'outzone']
-    r, err = api.events(from: from, to: to, tracker_ids: [tracker], event_types: event_types)
-    result[:result] += r
-    result[:errors] << err if err
+    _to = from == to ? (Time.parse(to) + 1).strftime(TIME_FMT) : to
+    r, err = api.events(from: from, to: _to, tracker_ids: [tracker], event_types: event_types)
+    result += r
+    if err
+      puts "ERROR when get history: #{err}"
+      return result
+    end
     if r.size >= API_LIMIT
       _from = r.last['time']
-      _events_by(tracker, _from, to, result: result)
+      events_by(tracker, _from, _to, result: result)
     end
     result
   end
