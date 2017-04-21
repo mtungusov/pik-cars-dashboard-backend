@@ -16,7 +16,7 @@ module Updater
   def update_live(connection)
     ids = _tracker_ids(connection)
     _trackers_state(connection, ids)
-    _tracker_zone(connection, ids)
+    _trackers_events(connection, ids)
   end
 
   def _trackers_state(connection, tracker_ids)
@@ -39,7 +39,7 @@ module Updater
     end
   end
 
-  def _tracker_zone(connection, tracker_ids)
+  def _trackers_events(connection, tracker_ids)
     events = ExtService::Navixy.events(tracker_ids)
     begin
       connection.setAutoCommit(false)
@@ -60,13 +60,6 @@ module Updater
     # when 'outzone'
     #   _add_tracker_zone_out(connection, event)
     # end
-  end
-
-  def _process_nested_tracker_rule(connection, event)
-    _parent_rule_id = _tracker_rule_parent_id(event)
-    return unless _parent_rule_id
-    _event = { 'rule_id' => _parent_rule_id, 'event' => 'inzone' }
-    _add_tracker_rule(connection, event.merge(_event))
   end
 
   def _tracker_rule_parent_id(event)
@@ -93,6 +86,13 @@ module Updater
       'changed_at' => changed_at
     }
     Storage.upsert_into(connection, 'tracker_rule', item)
+  end
+
+  def _process_nested_tracker_rule(connection, event)
+    _parent_rule_id = _tracker_rule_parent_id(event)
+    return unless _parent_rule_id
+    _event = { 'rule_id' => _parent_rule_id, 'event' => 'inzone' }
+    _add_tracker_rule(connection, event.merge(_event))
   end
 
   # def _add_tracker_zone_out(connection, event)
