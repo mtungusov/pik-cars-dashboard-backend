@@ -68,6 +68,7 @@ module Updater
   end
 
   def _process_event(connection, event)
+    return unless event
     _add_history_tracker(connection, event)
   end
 
@@ -88,7 +89,7 @@ module Updater
       connection.setAutoCommit(false)
       tracker_ids.each do |tracker_id|
         last_event = Storage.select_last_history_tracker(connection, tracker_id).first
-        _add_tracker_rule(connection, last_event)
+        _add_tracker_rule(connection, last_event) if last_event
       end
       connection.commit
     rescue => e

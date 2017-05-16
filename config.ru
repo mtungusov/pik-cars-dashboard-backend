@@ -23,6 +23,7 @@ Thread.abort_on_exception = true
 
 # $conn_write_nsi = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
 # DB_CONNECTION_STRING = File.join(Settings::CUR_DIR, 'db', 'db.sqlite')
+
 DB_CONNECTION_STRING = ''
 $conn_write_nsi = Storage.client(db_file: DB_CONNECTION_STRING).open
 $conn_write_live = Storage.client(db_file: DB_CONNECTION_STRING).open
@@ -43,8 +44,6 @@ Thread.new do
   end
 end
 
-#
-# $conn_write_test = Storage.client(db_file: File.join(Settings::CUR_DIR, 'db', 'db.sqlite')).open
 #
 # require 'pry'
 # binding.pry
