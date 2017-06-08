@@ -136,7 +136,9 @@ module ExtService::Navixy
   end
 
   def groups
-    api.list('/v2/tracker/group/list').map do |h|
+    initial = [{ 'id' => 0, 'title' => 'Основная' }]
+
+    initial + api.list('/v2/tracker/group/list').map do |h|
       {
         'id' => h['id'],
         'title' => h['title']
