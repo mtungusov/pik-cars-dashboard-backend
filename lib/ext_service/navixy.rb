@@ -64,22 +64,22 @@ module ExtService::Navixy
       params.join('&')
     end
 
-    def tracker_state(tracker_id)
-      return {} unless auth?
-      url = '/v2/tracker/get_state'
-      resp = @connection.post do |req|
-        req.url url
-        req.params['hash'] = @token
-        req.body = "tracker_id=#{tracker_id}"
-      end
-      if resp.body['success']
-        resp.body['state']
-      elsif resp.body['status']['code'] == 208
-        { 'movement_status' => 'unknown', 'connection_status' => 'blocked', 'last_update' => Time.now.strftime(TIME_FMT) }
-      else
-        {}
-      end
-    end
+    # def tracker_state(tracker_id)
+    #   return {} unless auth?
+    #   url = '/v2/tracker/get_state'
+    #   resp = @connection.post do |req|
+    #     req.url url
+    #     req.params['hash'] = @token
+    #     req.body = "tracker_id=#{tracker_id}"
+    #   end
+    #   if resp.body['success']
+    #     resp.body['state']
+    #   elsif resp.body['status']['code'] == 208
+    #     { 'movement_status' => 'unknown', 'connection_status' => 'blocked', 'last_update' => Time.now.strftime(TIME_FMT) }
+    #   else
+    #     {}
+    #   end
+    # end
 
     def tracker_states(tracker_ids)
       return {} if tracker_ids.empty?
@@ -88,9 +88,15 @@ module ExtService::Navixy
       resp = @connection.post do |req|
         req.url url
         req.params['hash'] = @token
-        req.body = "trackers=#{URI.encode_www_form_component(tracker_ids)}"
+        req.body = "trackers=#{URI.encode_www_form_component(tracker_ids)}&list_blocked=true"
       end
-      resp.body['success'] ? resp.body['states'] : {}
+      if resp.body['success']
+        r = {'states' => resp.body['states']}
+        r['blocked'] = resp.body['blocked'] if resp.body.key?('blocked')
+        r
+      else
+        {}
+      end
     end
 
     def _token_to_file
@@ -183,24 +189,26 @@ module ExtService::Navixy
     end
   end
 
-  def _tracker_states(tracker_ids)
-    # return { id:{movement_status:'', last_update:'', connection_status:''}, ...}
-    tracker_ids.inject({}) do |acc, id|
-      begin
-        resp = api.tracker_state(id)
-        acc[id] = resp unless resp.empty?
-      rescue
-        puts "Error: get state for tracker #{id}"
-      end
-      acc
-    end
-  end
+  # def _tracker_states(tracker_ids)
+  #   # return { id:{movement_status:'', last_update:'', connection_status:''}, ...}
+  #   tracker_ids.inject({}) do |acc, id|
+  #     begin
+  #       resp = api.tracker_state(id)
+  #       acc[id] = resp unless resp.empty?
+  #     rescue
+  #       puts "Error: get state for tracker #{id}"
+  #     end
+  #     acc
+  #   end
+  # end
 
   def tracker_states(tracker_ids)
     # return { state1:[ [id, changed_at],... ], ... }
 
-    # api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
-    _tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
+    # _tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
+
+    resp = api.tracker_states(tracker_ids)
+    r = resp['states'].inject({}) do |acc, (k, v)|
       status = v['movement_status']
       changed_at = v['last_update']
       connection = v['connection_status']
@@ -208,6 +216,10 @@ module ExtService::Navixy
       acc[status] << [k.to_i, changed_at, connection]
       acc
     end
+    blocked = resp.fetch('blocked', []).inject([]) do |acc, tracker_id|
+      acc << [tracker_id, Time.now.strftime(TIME_FMT), 'blocked']
+    end
+    blocked.empty? ? r : r.merge('unknown' => blocked)
   end
 
   def events_by(tracker, from, to, result: [])
