@@ -64,6 +64,23 @@ module ExtService::Navixy
       params.join('&')
     end
 
+    def tracker_state(tracker_id)
+      return {} unless auth?
+      url = '/v2/tracker/get_state'
+      resp = @connection.post do |req|
+        req.url url
+        req.params['hash'] = @token
+        req.body = "tracker_id=#{tracker_id}"
+      end
+      if resp.body['success']
+        resp.body['state']
+      elsif resp.body['status']['code'] == 208
+        { 'movement_status' => 'unknown', 'connection_status' => 'blocked', 'last_update' => Time.now.strftime(TIME_FMT) }
+      else
+        {}
+      end
+    end
+
     def tracker_states(tracker_ids)
       return {} if tracker_ids.empty?
       return {} unless auth?
@@ -166,9 +183,24 @@ module ExtService::Navixy
     end
   end
 
+  def _tracker_states(tracker_ids)
+    # return { id:{movement_status:'', last_update:'', connection_status:''}, ...}
+    tracker_ids.inject({}) do |acc, id|
+      begin
+        resp = api.tracker_state(id)
+        acc[id] = resp unless resp.empty?
+      rescue
+        puts "Error: get state for tracker #{id}"
+      end
+      acc
+    end
+  end
+
   def tracker_states(tracker_ids)
     # return { state1:[ [id, changed_at],... ], ... }
-    api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
+
+    # api.tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
+    _tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
       status = v['movement_status']
       changed_at = v['last_update']
       connection = v['connection_status']
