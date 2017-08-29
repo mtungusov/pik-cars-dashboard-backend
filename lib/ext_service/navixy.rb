@@ -133,7 +133,7 @@ module ExtService::Navixy
     end
 
     def _create_connection
-      Faraday.new(url: @url) do |faraday|
+      Faraday.new(url: @url, ssl: { verify: false } ) do |faraday|
         faraday.request  :url_encoded # form-encode POST params
         faraday.response :logger, @logger, headers: false # log requests to STDOUT
         faraday.response :json, 'content-type' => 'application/json; charset=utf-8'
