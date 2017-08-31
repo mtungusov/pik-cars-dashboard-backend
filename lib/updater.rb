@@ -103,7 +103,7 @@ module Updater
     _get_rule_parent_id(event['rule_id'])
   end
 
-  RULE_TREE = { 162499 => 162723 }.freeze
+  RULE_TREE = { 206059 => 206049, 214848 => 206049 }.freeze
   def _get_rule_parent_id(rule_id)
     RULE_TREE[rule_id]
   end
