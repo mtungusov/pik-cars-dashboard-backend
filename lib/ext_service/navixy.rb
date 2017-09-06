@@ -208,7 +208,7 @@ module ExtService::Navixy
     # _tracker_states(tracker_ids).inject({}) do |acc, (k, v)|
 
     resp = api.tracker_states(tracker_ids)
-    r = resp['states'].inject({}) do |acc, (k, v)|
+    r = resp.fetch('states', []).inject({}) do |acc, (k, v)|
       status = v['movement_status']
       changed_at = v['last_update']
       connection = v['connection_status']
